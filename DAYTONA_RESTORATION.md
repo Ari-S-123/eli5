@@ -39,21 +39,26 @@ webpack: (config, { isServer }) => {
 
 **Why:** Daytona SDK relies on Node.js modules that need to be polyfilled for browser/edge runtime compatibility in Next.js.
 
-### 2. Convex Actions File (`convex/demos.ts`)
+### 2. Convex Actions Files
 
-#### Added Imports and Setup
+#### Created New File: `convex/sandbox.ts`
+
+**Why separate?** Convex requires that only actions run in Node.js runtime (with `'use node'` directive). Mutations and queries must run in V8 runtime. By separating the Daytona sandbox action into its own file, we can use Node.js for sandbox operations while keeping other functions in V8.
+
+#### Updated File: `convex/demos.ts`
+
+#### File: `convex/sandbox.ts` (Node.js Runtime)
+
+This file contains the Daytona sandbox execution logic and runs in Node.js runtime:
 
 ```typescript
-'use node';  // Required for actions using Node.js APIs
+'use node';  // This entire file runs in Node.js
 
 import { Daytona } from '@daytonaio/sdk';
-
-// Temporary any-typed alias to avoid type errors before Convex generates
-// the full API surface including this module.
-const internal: any = internalApi;
+import { internal } from './_generated/api';
 ```
 
-#### Restored `executeInSandbox` Action
+#### `executeInSandbox` Action Implementation
 
 Implemented a comprehensive Daytona sandbox execution action that:
 
@@ -134,7 +139,11 @@ EOFHTML`;
 });
 ```
 
-#### Updated `generateDemo` Workflow
+#### File: `convex/demos.ts` (V8 Runtime)
+
+This file contains mutations, queries, and the AI code generation action. It runs in V8 runtime (no `'use node'`).
+
+**Updated `generateDemo` Workflow:**
 
 Changed from direct storage to proper sandbox scheduling:
 
@@ -157,9 +166,11 @@ await ctx.runMutation(internal.demos.updateDemo, {
   generatedCode: htmlCode,
 });
 
-// Execute in Daytona sandbox
-await ctx.scheduler.runAfter(0, internal.demos.executeInSandbox, { demoId });
+// Execute in Daytona sandbox (in separate Node.js action file)
+await ctx.scheduler.runAfter(0, internal.sandbox.executeInSandbox, { demoId });
 ```
+
+**Key Point:** The reference changed from `internal.demos.executeInSandbox` to `internal.sandbox.executeInSandbox` because the action is now in a separate file.
 
 ## Architecture Flow
 
@@ -175,9 +186,9 @@ generateDemo (action)
 3. Create demo record (status: 'generating')
 4. Call Anthropic Claude to generate HTML
 5. Update demo (status: 'executing')
-6. Schedule executeInSandbox
+6. Schedule sandbox.executeInSandbox
     ↓
-executeInSandbox (action)
+sandbox.executeInSandbox (Node.js action)
     ↓
 1. Create Daytona sandbox
 2. Write HTML to sandbox
@@ -216,10 +227,21 @@ DAYTONA_TARGET=us  # or 'eu' or 'local'
 3. **Monitor Status**: Watch status transition: `generating` → `executing` → `ready`
 4. **View Demo**: The demo will be served from Convex storage after sandbox execution
 
+## File Structure
+
+```
+convex/
+├── demos.ts          # V8 runtime - mutations, queries, generateDemo action
+├── sandbox.ts        # Node.js runtime - executeInSandbox action (NEW)
+├── papers.ts         # V8 runtime (with Node.js action for PDF extraction)
+├── users.ts          # V8 runtime - user management
+└── schema.ts         # Database schema
+```
+
 ## Verification Checklist
 
-- [x] Daytona SDK imported
-- [x] `executeInSandbox` action implemented
+- [x] Daytona SDK imported in `convex/sandbox.ts`
+- [x] `executeInSandbox` action implemented in separate Node.js file
 - [x] Sandbox creation with proper configuration
 - [x] File writing to sandbox filesystem
 - [x] HTTP server startup in sandbox
@@ -229,6 +251,7 @@ DAYTONA_TARGET=us  # or 'eu' or 'local'
 - [x] Status transitions maintained
 - [x] Next.js webpack polyfills configured
 - [x] Environment variables documented
+- [x] **CRITICAL FIX**: Separated Node.js actions from V8 functions to prevent Convex deployment error
 
 ## Known Limitations
 
