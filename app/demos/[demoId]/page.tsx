@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Id } from '@/convex/_generated/dataModel';
+import { use } from 'react';
 
 /**
  * Demo detail page - Full-screen viewer for a specific demo
@@ -18,8 +19,9 @@ import { Id } from '@/convex/_generated/dataModel';
  * - Back navigation
  * - Error handling
  */
-export default function DemoDetailPage({ params }: { params: { demoId: string } }) {
-  const demoId = params.demoId as Id<'demos'>;
+export default function DemoDetailPage({ params }: { params: Promise<{ demoId: string }> }) {
+  const { demoId: demoIdParam } = use(params);
+  const demoId = demoIdParam as Id<'demos'>;
   const demo = useQuery(api.demos.getDemo, { demoId });
 
   // Loading state

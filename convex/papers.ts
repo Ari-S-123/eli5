@@ -321,7 +321,13 @@ export const listUserPapers = query({
     }),
   ),
   handler: async (ctx) => {
-    const userId = await getUserFromAuth(ctx);
+    // Be tolerant of initial auth race conditions; fall back to empty list
+    let userId: Id<'users'> | undefined = undefined as unknown as Id<'users'>;
+    try {
+      userId = await getUserFromAuth(ctx);
+    } catch (error) {
+      return [];
+    }
 
     const papers = await ctx.db
       .query('papers')

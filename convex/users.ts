@@ -4,7 +4,7 @@ import { Id } from './_generated/dataModel';
 
 /**
  * Helper function to get authenticated user from context
- * Throws an error if user is not authenticated
+ * Throws an error if user is not authenticated or not found in database
  *
  * @param ctx - Query or mutation context
  * @returns User ID from the database
@@ -23,7 +23,7 @@ export async function getUserFromAuth(ctx: QueryCtx | MutationCtx): Promise<Id<'
     .unique();
 
   if (!user) {
-    throw new Error('User not found in database. Please sign in again.');
+    throw new Error('User not found in database. Please ensure the user is created via ensureUser mutation first.');
   }
 
   return user._id;

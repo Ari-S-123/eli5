@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Id } from '@/convex/_generated/dataModel';
-import { useState } from 'react';
+import { useState, use } from 'react';
 
 /**
  * Paper detail page - View paper information and generate demos
@@ -37,8 +37,9 @@ import { useState } from 'react';
  * - Generate new demo form
  * - Status indicators
  */
-export default function PaperDetailPage({ params }: { params: { paperId: string } }) {
-  const paperId = params.paperId as Id<'papers'>;
+export default function PaperDetailPage({ params }: { params: Promise<{ paperId: string }> }) {
+  const { paperId: paperIdParam } = use(params);
+  const paperId = paperIdParam as Id<'papers'>;
   const paper = useQuery(api.papers.getPaper, { paperId });
   const demos = useQuery(api.demos.listPaperDemos, { paperId });
   const [selectedDemoId, setSelectedDemoId] = useState<Id<'demos'> | null>(null);
