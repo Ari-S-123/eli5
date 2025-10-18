@@ -1,150 +1,194 @@
 'use client';
 
-import { Authenticated, Unauthenticated, useMutation, useQuery } from 'convex/react';
-import { api } from '../convex/_generated/api';
+import { Authenticated, Unauthenticated } from 'convex/react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Sparkles, FileText, Wand2, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@workos-inc/authkit-nextjs/components';
-import type { User } from '@workos-inc/node';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
+/**
+ * Home/Landing page
+ * 
+ * For authenticated users: Redirects to dashboard
+ * For unauthenticated users: Shows landing page with sign in/up
+ */
 export default function Home() {
-  const { user, signOut } = useAuth();
+  const router = useRouter();
 
   return (
     <>
-      <header className="sticky top-0 z-10 bg-background p-4 border-b-2 border-slate-200 dark:border-slate-800 flex flex-row justify-between items-center">
-        Convex + Next.js + WorkOS
-        {user && <UserMenu user={user} onSignOut={signOut} />}
-      </header>
-      <main className="p-8 flex flex-col gap-8">
-        <h1 className="text-4xl font-bold text-center">Convex + Next.js + WorkOS</h1>
-        <Authenticated>
-          <Content />
-        </Authenticated>
-        <Unauthenticated>
-          <SignInForm />
-        </Unauthenticated>
-      </main>
+      <Authenticated>
+        <RedirectToDashboard />
+      </Authenticated>
+      <Unauthenticated>
+        <LandingPage />
+      </Unauthenticated>
     </>
   );
 }
 
-function SignInForm() {
+/**
+ * Redirects authenticated users to dashboard
+ */
+function RedirectToDashboard() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/dashboard');
+  }, [router]);
+
   return (
-    <div className="flex flex-col gap-8 w-96 mx-auto">
-      <p>Log in to see the numbers</p>
-      <a href="/sign-in">
-        <button className="bg-foreground text-background px-4 py-2 rounded-md">Sign in</button>
-      </a>
-      <a href="/sign-up">
-        <button className="bg-foreground text-background px-4 py-2 rounded-md">Sign up</button>
-      </a>
+    <div className="container mx-auto py-16 px-4 flex items-center justify-center min-h-screen">
+      <p className="text-muted-foreground">Redirecting to dashboard...</p>
     </div>
   );
 }
 
-function Content() {
-  const { viewer, numbers } =
-    useQuery(api.myFunctions.listNumbers, {
-      count: 10,
-    }) ?? {};
-  const addNumber = useMutation(api.myFunctions.addNumber);
-
-  if (viewer === undefined || numbers === undefined) {
-    return <div className="mx-auto"></div>;
-  }
-
+/**
+ * Landing page for unauthenticated users
+ */
+function LandingPage() {
   return (
-    <div className="flex flex-col gap-8 max-w-lg mx-auto">
-      <p>Welcome {viewer ?? 'Anonymous'}!</p>
-      <p>
-        Click the button below and open this page in another window - this data is persisted in the Convex cloud
-        database!
-      </p>
-      <p>
-        <button
-          className="bg-foreground text-background text-sm px-4 py-2 rounded-md"
-          onClick={() => {
-            void addNumber({ value: Math.floor(Math.random() * 10) });
-          }}
-        >
-          Add a random number
-        </button>
-      </p>
-      <p>Numbers: {numbers?.length === 0 ? 'Click the button!' : (numbers?.join(', ') ?? '...')}</p>
-      <p>
-        Edit{' '}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-          convex/myFunctions.ts
-        </code>{' '}
-        to change your backend
-      </p>
-      <p>
-        Edit{' '}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-          app/page.tsx
-        </code>{' '}
-        to change your frontend
-      </p>
-      <p>
-        See the{' '}
-        <Link href="/server" className="underline hover:no-underline">
-          /server route
-        </Link>{' '}
-        for an example of loading data in a server component
-      </p>
-      <div className="flex flex-col">
-        <p className="text-lg font-bold">Useful resources:</p>
-        <div className="flex gap-2">
-          <div className="flex flex-col gap-2 w-1/2">
-            <ResourceCard
-              title="Convex docs"
-              description="Read comprehensive documentation for all Convex features."
-              href="https://docs.convex.dev/home"
-            />
-            <ResourceCard
-              title="Stack articles"
-              description="Learn about best practices, use cases, and more from a growing
-            collection of articles, videos, and walkthroughs."
-              href="https://www.typescriptlang.org/docs/handbook/2/basic-types.html"
-            />
+    <div className="container mx-auto py-16 px-4">
+      <div className="max-w-5xl mx-auto space-y-16">
+        {/* Hero Section */}
+        <div className="text-center space-y-6">
+          <div className="flex justify-center">
+            <Sparkles className="h-16 w-16 text-primary" />
           </div>
-          <div className="flex flex-col gap-2 w-1/2">
-            <ResourceCard
-              title="Templates"
-              description="Browse our collection of templates to get started quickly."
-              href="https://www.convex.dev/templates"
-            />
-            <ResourceCard
-              title="Discord"
-              description="Join our developer community to ask questions, trade tips & tricks,
-            and show off your projects."
-              href="https://www.convex.dev/community"
-            />
+          <h1 className="text-5xl font-bold tracking-tight">
+            ELI5
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Transform academic papers into interactive visual demonstrations. 
+            Upload PDFs and let AI generate engaging visualizations of complex concepts.
+          </p>
+          <div className="flex gap-4 justify-center pt-4">
+            <Link href="/sign-up">
+              <Button size="lg">
+                Get Started
+              </Button>
+            </Link>
+            <Link href="/sign-in">
+              <Button size="lg" variant="outline">
+                Sign In
+              </Button>
+            </Link>
           </div>
         </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <FileText className="h-10 w-10 text-primary mb-2" />
+              <CardTitle>Upload Papers</CardTitle>
+              <CardDescription>
+                Upload academic PDFs and our AI automatically extracts and analyzes the content
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Wand2 className="h-10 w-10 text-primary mb-2" />
+              <CardTitle>Generate Demos</CardTitle>
+              <CardDescription>
+                Describe any concept from the paper and AI generates interactive visualizations
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CheckCircle className="h-10 w-10 text-primary mb-2" />
+              <CardTitle>Learn Better</CardTitle>
+              <CardDescription>
+                View interactive demonstrations that make complex concepts easy to understand
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* How it works */}
+        <div className="space-y-6 text-center">
+          <h2 className="text-3xl font-bold">How it works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    1
+                  </div>
+                </div>
+                <CardTitle className="text-lg">Upload PDF</CardTitle>
+                <CardDescription>
+                  Upload any academic paper in PDF format
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    2
+                  </div>
+                </div>
+                <CardTitle className="text-lg">AI Analysis</CardTitle>
+                <CardDescription>
+                  Our AI analyzes and extracts key information
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    3
+                  </div>
+                </div>
+                <CardTitle className="text-lg">Describe Concept</CardTitle>
+                <CardDescription>
+                  Tell us what concept you want to visualize
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    4
+                  </div>
+                </div>
+                <CardTitle className="text-lg">View Demo</CardTitle>
+                <CardDescription>
+                  Get an interactive visual demonstration
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <Card className="border-primary">
+          <CardContent className="pt-6 text-center space-y-4">
+            <h2 className="text-2xl font-bold">Ready to get started?</h2>
+            <p className="text-muted-foreground">
+              Sign up now and start generating interactive demonstrations from your academic papers
+            </p>
+            <Link href="/sign-up">
+              <Button size="lg">
+                Create Free Account
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
-    </div>
-  );
-}
-
-function ResourceCard({ title, description, href }: { title: string; description: string; href: string }) {
-  return (
-    <div className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto">
-      <a href={href} className="text-sm underline hover:no-underline">
-        {title}
-      </a>
-      <p className="text-xs">{description}</p>
-    </div>
-  );
-}
-
-function UserMenu({ user, onSignOut }: { user: User; onSignOut: () => void }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm">{user.email}</span>
-      <button onClick={onSignOut} className="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600">
-        Sign out
-      </button>
     </div>
   );
 }
