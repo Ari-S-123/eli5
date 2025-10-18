@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
-import { Separator } from './ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,11 +14,10 @@ import {
 import { Home, FileText, Upload, Menu, User, LogOut, Sparkles } from 'lucide-react';
 import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { Authenticated, Unauthenticated } from 'convex/react';
-import { cn } from '@/lib/utils';
 
 /**
  * Navigation component - Main navigation bar with user menu
- * 
+ *
  * Features:
  * - Responsive navigation
  * - Active link highlighting
@@ -64,11 +62,7 @@ export function Navigation() {
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
-                <Button
-                  variant={isActive(link.href) ? 'default' : 'ghost'}
-                  size="sm"
-                  className="gap-2"
-                >
+                <Button variant={isActive(link.href) ? 'default' : 'ghost'} size="sm" className="gap-2">
                   <link.icon className="h-4 w-4" />
                   {link.label}
                 </Button>
@@ -82,9 +76,7 @@ export function Navigation() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2">
                   <User className="h-4 w-4" />
-                  <span className="max-w-[150px] truncate">
-                    {user?.email ?? 'Account'}
-                  </span>
+                  <span className="max-w-[150px] truncate">{user?.email ?? 'Account'}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -94,13 +86,14 @@ export function Navigation() {
                   <User className="mr-2 h-4 w-4" />
                   <span className="truncate">{user?.email}</span>
                 </DropdownMenuItem>
-                {user?.name && (
+                {/* Display name only if provided by provider */}
+                {typeof user?.name === 'string' && user.name.length > 0 && (
                   <DropdownMenuItem disabled>
                     <span className="truncate">{user.name}</span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="text-destructive">
+                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); void signOut(); }} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
@@ -133,7 +126,7 @@ export function Navigation() {
                 <DropdownMenuItem disabled>
                   <span className="truncate">{user?.email ?? 'Account'}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={signOut} className="text-destructive">
+                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); void signOut(); }} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
@@ -158,4 +151,3 @@ export function Navigation() {
     </nav>
   );
 }
-

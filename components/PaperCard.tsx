@@ -27,7 +27,7 @@ type PaperCardProps = {
 
 /**
  * Component for displaying paper information in a card format
- * 
+ *
  * Features:
  * - Paper metadata display
  * - Status indicators
@@ -92,9 +92,7 @@ export function PaperCard({ paper }: PaperCardProps) {
             <FileText className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <CardTitle className="text-lg line-clamp-2">{paper.title}</CardTitle>
-              <CardDescription className="mt-1">
-                Uploaded {formatDate(paper._creationTime)}
-              </CardDescription>
+              <CardDescription className="mt-1">Uploaded {formatDate(paper._creationTime)}</CardDescription>
             </div>
           </div>
           {getStatusBadge(paper.status)}
@@ -146,4 +144,3 @@ export function PaperCard({ paper }: PaperCardProps) {
     </Card>
   );
 }
-

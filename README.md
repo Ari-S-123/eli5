@@ -18,27 +18,33 @@ ELI5 is a Next.js application that allows authenticated users to upload academic
 ## Tech Stack
 
 ### Core Framework
+
 - **Next.js 15** (App Router)
 - **TypeScript**
 - **React 19**
 - **Tailwind CSS**
 
 ### Authentication
+
 - **WorkOS AuthKit** - User management and SSO
 
 ### Database & Backend
+
 - **Convex** - Real-time database and serverless functions
 - File storage for PDFs and generated demos
 
 ### AI & Code Generation
+
 - **Vercel AI SDK** - Streaming LLM responses
-- **Anthropic Claude Sonnet 4** - PDF analysis and code generation
+- **Anthropic Claude Sonnet 4.5** - PDF analysis and code generation
 - Uses Anthropic's PDF analyzing skill for superior document understanding
 
 ### Sandbox Execution
+
 - **Daytona SDK** - Secure, isolated code execution environment
 
 ### UI Components
+
 - **Shadcn UI** - Beautiful, accessible component library
 - **Lucide React** - Icon library
 
@@ -57,12 +63,14 @@ ELI5 is a Next.js application that allows authenticated users to upload academic
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd eli5
    ```
 
 2. **Install dependencies**
+
    ```bash
    pnpm install
    ```
@@ -100,9 +108,11 @@ ELI5 is a Next.js application that allows authenticated users to upload academic
    - Configure authentication settings
 
 5. **Set up Convex**
+
    ```bash
-   pnpm convex dev
+   pnpx convex dev
    ```
+
    This will:
    - Create a Convex deployment
    - Generate the database schema
@@ -113,11 +123,13 @@ ELI5 is a Next.js application that allows authenticated users to upload academic
    Open two terminals:
 
    **Terminal 1** (Convex backend):
+
    ```bash
-   pnpm convex dev
+   pnpx convex dev
    ```
 
    **Terminal 2** (Next.js frontend):
+
    ```bash
    pnpm dev
    ```
@@ -185,15 +197,18 @@ eli5/
 ## Database Schema
 
 ### Users
+
 - Stores user information from WorkOS authentication
 - Fields: `workosId`, `email`, `name`, `organizationId`
 
 ### Papers
+
 - Stores uploaded PDFs and extracted content
 - Fields: `userId`, `title`, `fileName`, `fileStorageId`, `status`, `extractedContent`, `metadata`
 - Status: `uploading` | `processing` | `ready` | `error`
 
 ### Demos
+
 - Stores generated visual demonstrations
 - Fields: `paperId`, `userId`, `concept`, `status`, `generatedCode`, `executionResults`
 - Status: `generating` | `executing` | `ready` | `failed`
@@ -203,6 +218,7 @@ eli5/
 ### Convex Functions
 
 **Papers:**
+
 - `papers.generateUploadUrl()` - Get upload URL for PDF
 - `papers.createPaper()` - Create paper record
 - `papers.listUserPapers()` - List user's papers
@@ -210,11 +226,13 @@ eli5/
 - `papers.extractPdfContent()` - Extract content using Anthropic
 
 **Demos:**
+
 - `demos.generateDemo()` - Generate demo code using AI
 - `demos.listPaperDemos()` - List demos for a paper
 - `demos.getDemo()` - Get single demo with URL
 
 **Users:**
+
 - `users.ensureUser()` - Auto-provision user from auth
 - `users.getCurrentUser()` - Get current user info
 
@@ -263,16 +281,19 @@ pnpm type-check
 ## Troubleshooting
 
 ### PDF Processing Fails
+
 - Check Anthropic API key
 - Verify PDF file is valid and under 10MB
 - Check Convex logs for errors
 
 ### Demo Generation Fails
+
 - Verify Anthropic API key
 - Check Daytona API credentials
 - Review Convex action logs
 
 ### Authentication Issues
+
 - Verify WorkOS credentials
 - Check redirect URI matches exactly
 - Clear cookies and try again

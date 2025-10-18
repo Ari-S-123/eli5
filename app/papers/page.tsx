@@ -22,7 +22,7 @@ import {
 
 /**
  * Papers page - List all papers for the current user
- * 
+ *
  * Features:
  * - Grid display of papers
  * - Search functionality
@@ -41,12 +41,8 @@ export default function PapersPage() {
       !searchQuery ||
       paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       paper.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      paper.metadata?.authors?.some((author) =>
-        author.toLowerCase().includes(searchQuery.toLowerCase())
-      ) ||
-      paper.metadata?.keywords?.some((keyword) =>
-        keyword.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      paper.metadata?.authors?.some((author) => author.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      paper.metadata?.keywords?.some((keyword) => keyword.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesStatus = statusFilter === 'all' || paper.status === statusFilter;
 
@@ -65,9 +61,7 @@ export default function PapersPage() {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Papers Library</h1>
-          <p className="text-muted-foreground">
-            Manage your uploaded academic papers and generate demonstrations
-          </p>
+          <p className="text-muted-foreground">Manage your uploaded academic papers and generate demonstrations</p>
         </div>
         <Link href="/papers/upload">
           <Button>
@@ -104,18 +98,12 @@ export default function PapersPage() {
                 <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                  <DropdownMenuRadioItem value="all">
-                    All ({getStatusCount('all')})
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="ready">
-                    Ready ({getStatusCount('ready')})
-                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="all">All ({getStatusCount('all')})</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="ready">Ready ({getStatusCount('ready')})</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="processing">
                     Processing ({getStatusCount('processing')})
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="error">
-                    Error ({getStatusCount('error')})
-                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="error">Error ({getStatusCount('error')})</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -135,9 +123,7 @@ export default function PapersPage() {
           <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
             <FileText className="h-16 w-16 text-muted-foreground" />
             <div className="text-center space-y-2">
-              <h3 className="font-semibold text-lg">
-                {papers.length === 0 ? 'No papers yet' : 'No papers found'}
-              </h3>
+              <h3 className="font-semibold text-lg">{papers.length === 0 ? 'No papers yet' : 'No papers found'}</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
                 {papers.length === 0
                   ? 'Upload your first academic paper to start generating interactive demonstrations'
@@ -152,10 +138,13 @@ export default function PapersPage() {
                 </Button>
               </Link>
             ) : (
-              <Button variant="outline" onClick={() => {
-                setSearchQuery('');
-                setStatusFilter('all');
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('all');
+                }}
+              >
                 Clear Filters
               </Button>
             )}
@@ -171,4 +160,3 @@ export default function PapersPage() {
     </div>
   );
 }
-

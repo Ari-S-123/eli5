@@ -21,7 +21,7 @@ type DemoViewerProps = {
 
 /**
  * Component for viewing interactive demonstrations
- * 
+ *
  * Features:
  * - Status display with badges
  * - Iframe preview of demo
@@ -152,9 +152,7 @@ export function DemoViewer({ demoId }: DemoViewerProps) {
             <AlertDescription>
               <p className="font-semibold mb-2">Generation Failed</p>
               {demo.executionResults?.errors && demo.executionResults.errors.length > 0 ? (
-                <pre className="text-xs whitespace-pre-wrap">
-                  {demo.executionResults.errors.join('\n')}
-                </pre>
+                <pre className="text-xs whitespace-pre-wrap">{demo.executionResults.errors.join('\n')}</pre>
               ) : (
                 <p>An unknown error occurred while generating the demo.</p>
               )}
@@ -219,12 +217,7 @@ export function DemoViewer({ demoId }: DemoViewerProps) {
               <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs max-h-[600px] overflow-y-auto">
                 <code>{demo.generatedCode}</code>
               </pre>
-              <Button
-                onClick={handleCopyCode}
-                variant="outline"
-                size="sm"
-                className="absolute top-2 right-2"
-              >
+              <Button onClick={handleCopyCode} variant="outline" size="sm" className="absolute top-2 right-2">
                 <Copy className="mr-2 h-3 w-3" />
                 {copied ? 'Copied!' : 'Copy'}
               </Button>
@@ -235,4 +228,3 @@ export function DemoViewer({ demoId }: DemoViewerProps) {
     </Card>
   );
 }
-

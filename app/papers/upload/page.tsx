@@ -8,7 +8,7 @@ import { Id } from '@/convex/_generated/dataModel';
 
 /**
  * Upload page - Full-page interface for uploading PDF papers
- * 
+ *
  * Features:
  * - Centered upload form
  * - Instructions and guidelines
@@ -55,15 +55,10 @@ export default function UploadPage() {
 
         {/* Additional Info */}
         <div className="text-center text-sm text-muted-foreground space-y-2">
-          <p>
-            Your papers are securely stored and only accessible to you.
-          </p>
-          <p>
-            After uploading, our AI will extract the content and metadata from your paper.
-          </p>
+          <p>Your papers are securely stored and only accessible to you.</p>
+          <p>After uploading, our AI will extract the content and metadata from your paper.</p>
         </div>
       </div>
     </div>
   );
 }
-

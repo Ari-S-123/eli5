@@ -2,7 +2,7 @@
 
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -26,11 +26,10 @@ import {
 import Link from 'next/link';
 import { Id } from '@/convex/_generated/dataModel';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 /**
  * Paper detail page - View paper information and generate demos
- * 
+ *
  * Features:
  * - Paper metadata display
  * - PDF preview link
@@ -39,7 +38,6 @@ import { useRouter } from 'next/navigation';
  * - Status indicators
  */
 export default function PaperDetailPage({ params }: { params: { paperId: string } }) {
-  const router = useRouter();
   const paperId = params.paperId as Id<'papers'>;
   const paper = useQuery(api.papers.getPaper, { paperId });
   const demos = useQuery(api.demos.listPaperDemos, { paperId });
@@ -190,9 +188,7 @@ export default function PaperDetailPage({ params }: { params: { paperId: string 
                   <User className="h-4 w-4" />
                   Authors
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {paper.metadata.authors.join(', ')}
-                </div>
+                <div className="text-sm text-muted-foreground">{paper.metadata.authors.join(', ')}</div>
               </div>
             )}
 
@@ -215,9 +211,7 @@ export default function PaperDetailPage({ params }: { params: { paperId: string 
             {paper.metadata?.abstract && (
               <div className="space-y-2">
                 <div className="text-sm font-medium">Abstract</div>
-                <p className="text-sm text-muted-foreground line-clamp-6">
-                  {paper.metadata.abstract}
-                </p>
+                <p className="text-sm text-muted-foreground line-clamp-6">{paper.metadata.abstract}</p>
               </div>
             )}
           </CardContent>
@@ -235,9 +229,7 @@ export default function PaperDetailPage({ params }: { params: { paperId: string 
             <Separator />
             <div className="space-y-2">
               <div className="text-sm font-medium">Ready Demos</div>
-              <div className="text-3xl font-bold">
-                {demos?.filter((d) => d.status === 'ready').length ?? 0}
-              </div>
+              <div className="text-3xl font-bold">{demos?.filter((d) => d.status === 'ready').length ?? 0}</div>
             </div>
           </CardContent>
         </Card>
@@ -247,9 +239,7 @@ export default function PaperDetailPage({ params }: { params: { paperId: string 
       {paper.status === 'error' && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            There was an error processing this paper. Please try uploading it again.
-          </AlertDescription>
+          <AlertDescription>There was an error processing this paper. Please try uploading it again.</AlertDescription>
         </Alert>
       )}
 
@@ -271,9 +261,7 @@ export default function PaperDetailPage({ params }: { params: { paperId: string 
               <Sparkles className="mr-2 h-4 w-4" />
               Generate Demo
             </TabsTrigger>
-            <TabsTrigger value="existing">
-              Existing Demos ({demos?.length ?? 0})
-            </TabsTrigger>
+            <TabsTrigger value="existing">Existing Demos ({demos?.length ?? 0})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="generate">
@@ -316,4 +304,3 @@ export default function PaperDetailPage({ params }: { params: { paperId: string 
     </div>
   );
 }
-

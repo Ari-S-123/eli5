@@ -1,6 +1,7 @@
 # SPEC.md: Academic Paper Visual Demo Generator
 
 ## Overview
+
 A Next.js 15 application that allows authenticated users to upload academic PDFs (research papers), uses Anthropic Claude to generate interactive visual demonstrations of paper concepts, executes the generated code safely in Daytona sandboxes, and displays the results to users in real-time.
 
 ---
@@ -8,32 +9,38 @@ A Next.js 15 application that allows authenticated users to upload academic PDFs
 ## Tech Stack
 
 ### Core Framework
+
 - **Next.js 15** (App Router)
-- **TypeScript** 
+- **TypeScript**
 - **pnpm** (Package manager)
 - **React 19** (included with Next.js 15)
 
 ### Authentication
+
 - **WorkOS AuthKit** (`@workos-inc/authkit-nextjs`)
 - Provides: User management, SSO, session handling, RBAC
 
 ### Database & Backend
+
 - **Convex** (`convex`)
 - Provides: Real-time database, serverless functions, file storage
 - **Convex Agent Component** (`@convex-dev/agent`)
 - Provides: AI agent orchestration with message history
 
 ### AI & Code Generation
+
 - **Vercel AI SDK** (`ai`, `@ai-sdk/anthropic`)
 - Provides: Streaming LLM responses, tool calling, structured outputs
 - **Anthropic Claude Sonnet 4.5**
 - Used for: PDF analysis, code generation, prompt engineering
 
 ### Sandbox Execution
+
 - **Daytona TypeScript SDK** (`@daytonaio/sdk`)
 - Provides: Secure code execution, isolated environments, file system access
 
 ### UI Components
+
 - **Tailwind CSS** (Styling)
 - **Radix UI** or **shadcn/ui** (Component library)
 - **React PDF** (`react-pdf`) for PDF previews
@@ -90,6 +97,7 @@ User → Next.js Frontend → Convex Backend → Anthropic API → Daytona Sandb
 ### Tables
 
 #### `users`
+
 ```typescript
 {
   _id: Id<"users">,
@@ -102,6 +110,7 @@ User → Next.js Frontend → Convex Backend → Anthropic API → Daytona Sandb
 ```
 
 #### `papers`
+
 ```typescript
 {
   _id: Id<"papers">,
@@ -122,6 +131,7 @@ User → Next.js Frontend → Convex Backend → Anthropic API → Daytona Sandb
 ```
 
 #### `demos`
+
 ```typescript
 {
   _id: Id<"demos">,
@@ -145,9 +155,11 @@ User → Next.js Frontend → Convex Backend → Anthropic API → Daytona Sandb
 ```
 
 #### `agent_messages` (Convex Agent Component)
+
 Auto-created by `@convex-dev/agent` for conversation history
 
 #### `agent_threads` (Convex Agent Component)
+
 Auto-created by `@convex-dev/agent` for thread management
 
 ---
@@ -157,23 +169,29 @@ Auto-created by `@convex-dev/agent` for thread management
 ### Next.js API Routes
 
 #### `/api/auth/callback` (GET)
+
 **Purpose:** WorkOS AuthKit callback handler
+
 ```typescript
-import { handleAuth } from "@workos-inc/authkit-nextjs";
+import { handleAuth } from '@workos-inc/authkit-nextjs';
 export const GET = handleAuth();
 ```
 
 #### `/api/auth/signout` (GET)
+
 **Purpose:** Sign out handler
+
 ```typescript
-import { signOut } from "@workos-inc/authkit-nextjs";
+import { signOut } from '@workos-inc/authkit-nextjs';
 export const GET = signOut();
 ```
 
 ### Convex Actions
 
 #### `papers.uploadPaper` (action)
+
 **Purpose:** Handle PDF upload and initial processing
+
 ```typescript
 export const uploadPaper = action({
   args: {
@@ -182,65 +200,65 @@ export const uploadPaper = action({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
-    
+
     // Store file in Convex storage
-    const storageId = await ctx.storage.store(
-      new Blob([args.fileData], { type: "application/pdf" })
-    );
-    
+    const storageId = await ctx.storage.store(new Blob([args.fileData], { type: 'application/pdf' }));
+
     // Create paper record
     const paperId = await ctx.runMutation(api.papers.create, {
       userId,
       fileName: args.fileName,
       fileStorageId: storageId,
-      status: "processing",
+      status: 'processing',
     });
-    
+
     // Extract PDF content using Anthropic
     const pdfUrl = await ctx.storage.getUrl(storageId);
     const extractedContent = await extractPdfContent(pdfUrl);
-    
+
     // Update paper with extracted content
     await ctx.runMutation(api.papers.update, {
       paperId,
       extractedContent,
-      status: "ready",
+      status: 'ready',
     });
-    
+
     return { paperId };
   },
 });
 ```
 
 #### `demos.generateDemo` (action)
+
 **Purpose:** Generate interactive demo code using Anthropic
+
 ```typescript
-import { anthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
-import { Agent } from "@convex-dev/agent";
-import { components } from "./_generated/api";
+import { anthropic } from '@ai-sdk/anthropic';
+import { generateText } from 'ai';
+import { Agent } from '@convex-dev/agent';
+import { components } from './_generated/api';
 
 export const generateDemo = action({
   args: {
-    paperId: v.id("papers"),
+    paperId: v.id('papers'),
     concept: v.string(),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
     const paper = await ctx.runQuery(api.papers.get, { id: args.paperId });
-    
+
     // Create agent for code generation
     const codeGenAgent = new Agent(components.agent, {
-      name: "Code Generator",
-      languageModel: anthropic.chat("claude-sonnet-4-20250514"),
+      name: 'Code Generator',
+      languageModel: anthropic.chat('claude-sonnet-4-5-20250929'),
       instructions: `You are an expert at creating interactive visual demonstrations 
         of academic paper concepts. Generate clean, self-contained HTML or React code 
         that visually demonstrates the key concept from the paper.`,
     });
-    
+
     // Create thread for this demo generation
     const { threadId, thread } = await codeGenAgent.createThread(ctx);
-    
+
     // Generate code
     const result = await thread.generateText({
       prompt: `
@@ -260,7 +278,7 @@ export const generateDemo = action({
         Return ONLY the HTML code, no markdown or explanations.
       `,
     });
-    
+
     // Create demo record
     const demoId = await ctx.runMutation(api.demos.create, {
       paperId: args.paperId,
@@ -268,84 +286,81 @@ export const generateDemo = action({
       threadId,
       concept: args.concept,
       generatedCode: result.text,
-      codeType: "html",
-      status: "executing",
+      codeType: 'html',
+      status: 'executing',
     });
-    
+
     // Execute in Daytona sandbox
     await ctx.scheduler.runAfter(0, api.demos.executeInSandbox, { demoId });
-    
+
     return { demoId, threadId };
   },
 });
 ```
 
 #### `demos.executeInSandbox` (action)
+
 **Purpose:** Execute generated code in Daytona sandbox
+
 ```typescript
-import { Daytona } from "@daytonaio/sdk";
+import { Daytona } from '@daytonaio/sdk';
 
 export const executeInSandbox = action({
   args: {
-    demoId: v.id("demos"),
+    demoId: v.id('demos'),
   },
   handler: async (ctx, args) => {
     const demo = await ctx.runQuery(api.demos.get, { id: args.demoId });
-    
+
     // Initialize Daytona client
     const daytona = new Daytona({
       apiKey: process.env.DAYTONA_API_KEY,
       apiUrl: process.env.DAYTONA_API_URL,
     });
-    
+
     try {
       // Create sandbox
       const sandbox = await daytona.create({
-        language: "typescript",
+        language: 'typescript',
         envVars: {
-          NODE_ENV: "production",
+          NODE_ENV: 'production',
         },
       });
-      
+
       // Upload generated HTML to sandbox
-      await sandbox.process.writeFile("demo.html", demo.generatedCode);
-      
+      await sandbox.process.writeFile('demo.html', demo.generatedCode);
+
       // Start HTTP server to serve the HTML
-      await sandbox.process.executeCommand(
-        "npx -y http-server -p 8080 --cors"
-      );
-      
+      await sandbox.process.executeCommand('npx -y http-server -p 8080 --cors');
+
       // Wait for server to start
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Capture screenshot (if Daytona supports it)
       // Alternative: fetch the HTML and store it
       const htmlResponse = await fetch(`${sandbox.baseUrl}:8080/demo.html`);
       const renderedHtml = await htmlResponse.text();
-      
+
       // Store results
-      const fileStorageId = await ctx.storage.store(
-        new Blob([renderedHtml], { type: "text/html" })
-      );
-      
+      const fileStorageId = await ctx.storage.store(new Blob([renderedHtml], { type: 'text/html' }));
+
       // Update demo with results
       await ctx.runMutation(api.demos.update, {
         demoId: args.demoId,
-        status: "ready",
+        status: 'ready',
         executionResults: {
           sandboxId: sandbox.id,
           outputHtml: renderedHtml,
         },
         demoFileStorageId: fileStorageId,
       });
-      
+
       // Clean up sandbox
       await sandbox.destroy();
-      
     } catch (error) {
       await ctx.runMutation(api.demos.update, {
         demoId: args.demoId,
-        status: "failed",
+        status: 'failed',
         executionResults: {
           errors: [error.message],
         },
@@ -358,48 +373,49 @@ export const executeInSandbox = action({
 ### Convex Queries
 
 #### `papers.listUserPapers` (query)
+
 ```typescript
 export const listUserPapers = query({
   args: {},
   handler: async (ctx) => {
     const userId = await requireAuth(ctx);
     return await ctx.db
-      .query("papers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .order("desc")
+      .query('papers')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .order('desc')
       .collect();
   },
 });
 ```
 
 #### `demos.listPaperDemos` (query)
+
 ```typescript
 export const listPaperDemos = query({
-  args: { paperId: v.id("papers") },
+  args: { paperId: v.id('papers') },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
     return await ctx.db
-      .query("demos")
-      .withIndex("by_paper", (q) => q.eq("paperId", args.paperId))
-      .order("desc")
+      .query('demos')
+      .withIndex('by_paper', (q) => q.eq('paperId', args.paperId))
+      .order('desc')
       .collect();
   },
 });
 ```
 
 #### `demos.getDemoWithUrl` (query)
+
 ```typescript
 export const getDemoWithUrl = query({
-  args: { demoId: v.id("demos") },
+  args: { demoId: v.id('demos') },
   handler: async (ctx, args) => {
     const demo = await ctx.db.get(args.demoId);
     if (!demo) return null;
-    
+
     // Get storage URL for the demo file
-    const demoUrl = demo.demoFileStorageId
-      ? await ctx.storage.getUrl(demo.demoFileStorageId)
-      : null;
-    
+    const demoUrl = demo.demoFileStorageId ? await ctx.storage.getUrl(demo.demoFileStorageId) : null;
+
     return {
       ...demo,
       demoUrl,
@@ -413,6 +429,7 @@ export const getDemoWithUrl = query({
 ## Frontend Implementation
 
 ### File Structure
+
 ```
 src/
 ├── app/
@@ -450,6 +467,7 @@ src/
 ### Key Components
 
 #### `ConvexClientProvider.tsx`
+
 ```typescript
 "use client";
 
@@ -472,6 +490,7 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
 ```
 
 #### `PdfUploader.tsx`
+
 ```typescript
 "use client";
 
@@ -486,17 +505,17 @@ export function PdfUploader() {
 
   const handleUpload = async () => {
     if (!file) return;
-    
+
     setUploading(true);
     try {
       const arrayBuffer = await file.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
-      
+
       const result = await uploadPaper({
         fileName: file.name,
         fileData: bytes,
       });
-      
+
       // Redirect to paper page
       window.location.href = `/papers/${result.paperId}`;
     } catch (error) {
@@ -527,6 +546,7 @@ export function PdfUploader() {
 ```
 
 #### `DemoGenerator.tsx`
+
 ```typescript
 "use client";
 
@@ -546,14 +566,14 @@ export function DemoGenerator({ paperId }: Props) {
 
   const handleGenerate = async () => {
     if (!concept.trim()) return;
-    
+
     setGenerating(true);
     try {
       const result = await generateDemo({
         paperId,
         concept,
       });
-      
+
       // Redirect to demo page
       window.location.href = `/demos/${result.demoId}`;
     } catch (error) {
@@ -584,6 +604,7 @@ export function DemoGenerator({ paperId }: Props) {
 ```
 
 #### `DemoViewer.tsx`
+
 ```typescript
 "use client";
 
@@ -630,7 +651,7 @@ export function DemoViewer({ demoId }: Props) {
         <h3 className="font-semibold mb-2">Concept</h3>
         <p>{demo.concept}</p>
       </div>
-      
+
       {demo.demoUrl && (
         <div className="border rounded overflow-hidden">
           <iframe
@@ -641,7 +662,7 @@ export function DemoViewer({ demoId }: Props) {
           />
         </div>
       )}
-      
+
       <div className="flex gap-4">
         <a
           href={demo.demoUrl || "#"}
@@ -668,20 +689,18 @@ export function DemoViewer({ demoId }: Props) {
 ### Authentication Middleware (`middleware.ts`)
 
 ```typescript
-import { authkitMiddleware } from "@workos-inc/authkit-nextjs";
+import { authkitMiddleware } from '@workos-inc/authkit-nextjs';
 
 export default authkitMiddleware({
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === 'development',
   middlewareAuth: {
     enabled: true,
-    unauthenticatedPaths: ["/", "/login"],
+    unauthenticatedPaths: ['/', '/login'],
   },
 });
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/auth).*)",
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
 };
 ```
 
@@ -690,6 +709,7 @@ export const config = {
 ## Environment Variables
 
 ### `.env.local`
+
 ```bash
 # Convex
 CONVEX_DEPLOYMENT=
@@ -718,12 +738,14 @@ NODE_ENV=development
 ## Installation & Setup
 
 ### 1. Initialize Project
+
 ```bash
 pnpm create next-app@latest atgen-demo --typescript --app --tailwind
 cd atgen-demo
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 # Core dependencies
 pnpm add convex @convex-dev/agent
@@ -744,16 +766,19 @@ pnpm add -D @types/node
 ```
 
 ### 3. Configure Convex
+
 ```bash
 pnpm convex dev
 ```
 
 This will:
+
 - Create a Convex deployment
 - Generate `.env.local` with `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL`
 - Create `convex/` directory
 
 ### 4. Install Convex Agent Component
+
 ```bash
 # In convex/convex.config.ts
 import { defineApp } from "convex/server";
@@ -769,6 +794,7 @@ pnpm convex dev # Run again to generate agent types
 ```
 
 ### 5. Configure WorkOS
+
 ```bash
 # Sign up at workos.com
 # Get Client ID and API Key from dashboard
@@ -777,12 +803,14 @@ pnpm convex dev # Run again to generate agent types
 ```
 
 ### 6. Configure WorkOS with Convex
+
 ```bash
 pnpm convex auth add workos
 # This creates convex/auth.config.ts
 ```
 
 ### 7. Configure Daytona
+
 ```bash
 # Sign up at daytona.io
 # Get API key from dashboard
@@ -790,9 +818,10 @@ pnpm convex auth add workos
 ```
 
 ### 8. Configure Next.js for Node Polyfills (for Daytona SDK)
+
 ```typescript
 // next.config.ts
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
@@ -813,6 +842,7 @@ export default nextConfig;
 ```
 
 ### 9. Run Development Server
+
 ```bash
 # Terminal 1: Convex backend
 pnpm convex dev
@@ -826,55 +856,59 @@ pnpm dev
 ## Security Considerations
 
 ### 1. Sandbox Isolation
+
 - All user-generated code runs in isolated Daytona sandboxes
 - No direct access to production environment
 - Limited sandbox lifetime (auto-cleanup after execution)
 
 ### 2. Content Security Policy
+
 ```typescript
 // middleware.ts - Add CSP headers
 export function middleware(request: NextRequest) {
   const response = authkitMiddleware()(request);
-  
+
   response.headers.set(
-    "Content-Security-Policy",
-    "frame-src 'self' https://*.convex.cloud; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+    'Content-Security-Policy',
+    "frame-src 'self' https://*.convex.cloud; script-src 'self' 'unsafe-inline' 'unsafe-eval';",
   );
-  
+
   return response;
 }
 ```
 
 ### 3. File Upload Validation
+
 ```typescript
 // Validate PDF files before upload
 const validatePdf = (file: File): boolean => {
   // Check file size (max 10MB)
   if (file.size > 10 * 1024 * 1024) {
-    throw new Error("File too large");
+    throw new Error('File too large');
   }
-  
+
   // Check MIME type
-  if (file.type !== "application/pdf") {
-    throw new Error("Invalid file type");
+  if (file.type !== 'application/pdf') {
+    throw new Error('Invalid file type');
   }
-  
+
   return true;
 };
 ```
 
 ### 4. Rate Limiting
+
 ```typescript
 // Use Convex rate limiter component
-import rateLimit from "@convex-dev/rate-limiter/convex.config";
+import rateLimit from '@convex-dev/rate-limiter/convex.config';
 
 app.use(rateLimit);
 
 // In action:
 await rateLimit.limit(ctx, {
-  name: "demo_generation",
+  name: 'demo_generation',
   key: userId,
-  rate: { kind: "fixed-window", max: 10, period: "1h" },
+  rate: { kind: 'fixed-window', max: 10, period: '1h' },
 });
 ```
 
@@ -883,16 +917,19 @@ await rateLimit.limit(ctx, {
 ## Cost Optimization
 
 ### 1. Anthropic API
+
 - Use prompt caching for repeated paper content
 - Set `max_tokens` appropriately (2000-4000 for code generation)
-- Use Claude Sonnet 4 (cheaper) for simple demos, Opus for complex ones
+- Use Claude Sonnet 4.5 (cheaper) for simple demos, Opus for complex ones
 
 ### 2. Daytona Sandboxes
+
 - Set timeout limits on sandbox execution (5-30 seconds)
 - Destroy sandboxes immediately after use
 - Pool sandboxes for multiple users if possible
 
 ### 3. Convex Storage
+
 - Compress PDF files before storage
 - Set TTL on temporary files (generated code, screenshots)
 - Use CDN URLs for frequently accessed demos
@@ -902,16 +939,19 @@ await rateLimit.limit(ctx, {
 ## Testing Strategy
 
 ### Unit Tests
+
 ```bash
 pnpm add -D vitest @testing-library/react @testing-library/jest-dom
 ```
 
 ### Integration Tests
+
 - Test Convex actions with `convex-test`
 - Mock Anthropic API responses
 - Mock Daytona sandbox execution
 
 ### E2E Tests
+
 ```bash
 pnpm add -D playwright @playwright/test
 ```
@@ -921,6 +961,7 @@ pnpm add -D playwright @playwright/test
 ## Deployment
 
 ### Vercel (Recommended)
+
 ```bash
 # Install Vercel CLI
 pnpm add -g vercel
@@ -934,6 +975,7 @@ pnpm convex deploy
 ```
 
 ### Environment Variables for Production
+
 - Update `NEXT_PUBLIC_WORKOS_REDIRECT_URI` to production URL
 - Update WorkOS redirect URIs in dashboard
 - Update CORS settings in WorkOS dashboard
@@ -945,34 +987,37 @@ pnpm convex deploy
 ## Monitoring & Observability
 
 ### 1. Convex Dashboard
+
 - Monitor function execution times
 - Track database queries
 - View real-time logs
 
 ### 2. WorkOS Dashboard
+
 - Monitor authentication events
 - Track user sessions
 - View audit logs
 
 ### 3. Custom Logging
+
 ```typescript
 // Add structured logging
 export const generateDemo = action({
   handler: async (ctx, args) => {
-    console.log("Demo generation started", {
+    console.log('Demo generation started', {
       paperId: args.paperId,
       userId,
       timestamp: Date.now(),
     });
-    
+
     try {
       // ... generation logic
-      console.log("Demo generation completed", {
+      console.log('Demo generation completed', {
         demoId,
         duration: Date.now() - startTime,
       });
     } catch (error) {
-      console.error("Demo generation failed", {
+      console.error('Demo generation failed', {
         error: error.message,
         paperId: args.paperId,
       });
@@ -987,12 +1032,14 @@ export const generateDemo = action({
 ## Future Enhancements
 
 ### Phase 2
+
 - Support for multiple demo formats (D3.js, Three.js, Canvas API)
 - Real-time collaboration on demos
 - Demo versioning and history
 - Community demo sharing
 
 ### Phase 3
+
 - AI-powered demo suggestions based on paper content
 - Automatic concept extraction from papers
 - Multi-language support for generated code
@@ -1005,13 +1052,17 @@ export const generateDemo = action({
 ### Common Issues
 
 #### 1. Daytona SDK not working in browser
+
 **Solution:** Ensure node polyfills are configured in `next.config.ts`
 
 #### 2. WorkOS redirect not working
+
 **Solution:** Verify redirect URI matches exactly in both `.env.local` and WorkOS dashboard
 
 #### 3. Convex actions timing out
+
 **Solution:** Increase timeout in `convex.json`:
+
 ```json
 {
   "functions": {
@@ -1023,6 +1074,7 @@ export const generateDemo = action({
 ```
 
 #### 4. PDF upload failing
+
 **Solution:** Check file size limits and MIME type validation
 
 ---
@@ -1030,6 +1082,7 @@ export const generateDemo = action({
 ## Resources & Documentation
 
 ### Official Docs
+
 - [Next.js 15 Documentation](https://nextjs.org/docs)
 - [Convex Documentation](https://docs.convex.dev/)
 - [WorkOS AuthKit Documentation](https://workos.com/docs/authkit)
@@ -1038,6 +1091,7 @@ export const generateDemo = action({
 - [Daytona Documentation](https://www.daytona.io/docs/)
 
 ### Example Repositories
+
 - [WorkOS + Convex + Next.js Template](https://github.com/workos/template-convex-nextjs-authkit)
 - [Convex Agent Examples](https://github.com/get-convex/agent)
 - [Next.js B2B Starter Kit](https://github.com/workos/next-b2b-starter-kit)
@@ -1045,4 +1099,5 @@ export const generateDemo = action({
 ---
 
 ## License
+
 MIT

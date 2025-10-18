@@ -12,7 +12,7 @@ import { Id } from '@/convex/_generated/dataModel';
 
 /**
  * Demo detail page - Full-screen viewer for a specific demo
- * 
+ *
  * Features:
  * - Full-screen demo viewer
  * - Back navigation
@@ -72,4 +72,3 @@ export default function DemoDetailPage({ params }: { params: { demoId: string } 
     </div>
   );
 }
-

@@ -5,14 +5,14 @@ import { Id } from './_generated/dataModel';
 /**
  * Helper function to get authenticated user from context
  * Throws an error if user is not authenticated
- * 
+ *
  * @param ctx - Query or mutation context
  * @returns User ID from the database
  * @throws Error if user is not authenticated or not found in database
  */
 export async function getUserFromAuth(ctx: QueryCtx | MutationCtx): Promise<Id<'users'>> {
   const identity = await ctx.auth.getUserIdentity();
-  
+
   if (!identity) {
     throw new Error('Not authenticated');
   }
@@ -32,7 +32,7 @@ export async function getUserFromAuth(ctx: QueryCtx | MutationCtx): Promise<Id<'
 /**
  * Ensures a user exists in the database, creating one if necessary
  * This mutation is called automatically when a user signs in
- * 
+ *
  * @returns The user ID
  */
 export const ensureUser = mutation({
@@ -60,7 +60,11 @@ export const ensureUser = mutation({
       workosId: identity.subject,
       email: identity.email ?? '',
       name: identity.name ?? 'Unknown User',
-      organizationId: identity.organizationId,
+      // Ensure `organizationId` is a string when present; otherwise leave undefined
+      organizationId:
+        typeof identity.organizationId === 'string'
+          ? identity.organizationId
+          : undefined,
     });
 
     return userId;
@@ -69,7 +73,7 @@ export const ensureUser = mutation({
 
 /**
  * Gets the current authenticated user's information
- * 
+ *
  * @returns User document or null if not authenticated
  */
 export const getCurrentUser = query({
@@ -83,7 +87,7 @@ export const getCurrentUser = query({
       name: v.string(),
       organizationId: v.optional(v.string()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -100,4 +104,3 @@ export const getCurrentUser = query({
     return user;
   },
 });
-

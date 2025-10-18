@@ -1,16 +1,20 @@
-"use node";
+
 
 import { v } from 'convex/values';
 import { mutation, query, action, internalMutation } from './_generated/server';
 import { getUserFromAuth } from './users';
-import { api, internal } from './_generated/api';
+import { api, internal as internalApi } from './_generated/api';
 import { Id } from './_generated/dataModel';
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 
+// Temporary any-typed alias to avoid type errors before Convex generates
+// the full API surface including this module.
+const internal: any = internalApi;
+
 /**
  * Generates a URL for uploading a PDF file to Convex storage
- * 
+ *
  * @returns Upload URL for the file
  */
 export const generateUploadUrl = mutation({
@@ -19,14 +23,14 @@ export const generateUploadUrl = mutation({
   handler: async (ctx) => {
     // Verify user is authenticated
     await getUserFromAuth(ctx);
-    
+
     return await ctx.storage.generateUploadUrl();
   },
 });
 
 /**
  * Creates a paper record after file upload and triggers content extraction
- * 
+ *
  * @param args.fileName - Name of the uploaded PDF file
  * @param args.fileStorageId - Storage ID from Convex storage
  * @param args.title - Title of the paper (optional, defaults to filename)
@@ -62,7 +66,7 @@ export const createPaper = mutation({
 
 /**
  * Internal mutation to update paper details
- * 
+ *
  * @param args.paperId - ID of the paper to update
  * @param args.status - New status
  * @param args.extractedContent - Extracted text content
@@ -73,12 +77,7 @@ export const updatePaper = internalMutation({
   args: {
     paperId: v.id('papers'),
     status: v.optional(
-      v.union(
-        v.literal('uploading'),
-        v.literal('processing'),
-        v.literal('ready'),
-        v.literal('error')
-      )
+      v.union(v.literal('uploading'), v.literal('processing'), v.literal('ready'), v.literal('error')),
     ),
     extractedContent: v.optional(v.string()),
     metadata: v.optional(
@@ -86,7 +85,7 @@ export const updatePaper = internalMutation({
         authors: v.optional(v.array(v.string())),
         abstract: v.optional(v.string()),
         keywords: v.optional(v.array(v.string())),
-      })
+      }),
     ),
     pdfUrl: v.optional(v.string()),
   },
@@ -107,7 +106,7 @@ export const updatePaper = internalMutation({
 /**
  * Extracts content from a PDF using Anthropic's PDF analyzing skill
  * This is an internal action that processes the uploaded PDF
- * 
+ *
  * @param args.paperId - ID of the paper to process
  */
 export const extractPdfContent = action({
@@ -134,8 +133,8 @@ export const extractPdfContent = action({
       }
 
       // Use Anthropic's Claude with PDF analyzing to extract content
-      const result = await generateText({
-        model: anthropic('claude-sonnet-4-20250514'),
+    const result = await generateText({
+        model: anthropic('claude-sonnet-4-5-20250929'),
         messages: [
           {
             role: 'user',
@@ -152,14 +151,15 @@ export const extractPdfContent = action({
 Format your response as JSON with keys: content, title, authors, abstract, keywords`,
               },
               {
+                // Fetch the PDF bytes and pass as a file part
                 type: 'file',
-                data: pdfUrl,
-                mimeType: 'application/pdf',
+                mediaType: 'application/pdf',
+                data: await (await fetch(pdfUrl)).arrayBuffer(),
               },
             ],
           },
         ],
-        maxTokens: 8000,
+      maxOutputTokens: 8000,
       });
 
       // Parse the extracted information
@@ -199,7 +199,7 @@ Format your response as JSON with keys: content, title, authors, abstract, keywo
       });
     } catch (error) {
       console.error('PDF extraction failed:', error);
-      
+
       // Update paper status to error
       await ctx.runMutation(internal.papers.updatePaper, {
         paperId: args.paperId,
@@ -227,22 +227,17 @@ export const getPaperInternal = query({
       fileName: v.string(),
       fileStorageId: v.id('_storage'),
       pdfUrl: v.optional(v.string()),
-      status: v.union(
-        v.literal('uploading'),
-        v.literal('processing'),
-        v.literal('ready'),
-        v.literal('error')
-      ),
+      status: v.union(v.literal('uploading'), v.literal('processing'), v.literal('ready'), v.literal('error')),
       extractedContent: v.optional(v.string()),
       metadata: v.optional(
         v.object({
           authors: v.optional(v.array(v.string())),
           abstract: v.optional(v.string()),
           keywords: v.optional(v.array(v.string())),
-        })
+        }),
       ),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     return await ctx.db.get(args.paperId);
@@ -251,7 +246,7 @@ export const getPaperInternal = query({
 
 /**
  * Gets a single paper by ID with authentication check
- * 
+ *
  * @param args.paperId - ID of the paper to retrieve
  * @returns Paper document with URL or null if not found
  */
@@ -268,22 +263,17 @@ export const getPaper = query({
       fileName: v.string(),
       fileStorageId: v.id('_storage'),
       pdfUrl: v.union(v.string(), v.null()),
-      status: v.union(
-        v.literal('uploading'),
-        v.literal('processing'),
-        v.literal('ready'),
-        v.literal('error')
-      ),
+      status: v.union(v.literal('uploading'), v.literal('processing'), v.literal('ready'), v.literal('error')),
       extractedContent: v.optional(v.string()),
       metadata: v.optional(
         v.object({
           authors: v.optional(v.array(v.string())),
           abstract: v.optional(v.string()),
           keywords: v.optional(v.array(v.string())),
-        })
+        }),
       ),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const userId = await getUserFromAuth(ctx);
@@ -294,9 +284,7 @@ export const getPaper = query({
     }
 
     // Get PDF URL if available
-    const pdfUrl = paper.fileStorageId
-      ? await ctx.storage.getUrl(paper.fileStorageId)
-      : null;
+    const pdfUrl = paper.fileStorageId ? await ctx.storage.getUrl(paper.fileStorageId) : null;
 
     return {
       ...paper,
@@ -307,7 +295,7 @@ export const getPaper = query({
 
 /**
  * Lists all papers for the current authenticated user
- * 
+ *
  * @returns Array of paper documents
  */
 export const listUserPapers = query({
@@ -321,21 +309,16 @@ export const listUserPapers = query({
       fileName: v.string(),
       fileStorageId: v.id('_storage'),
       pdfUrl: v.union(v.string(), v.null()),
-      status: v.union(
-        v.literal('uploading'),
-        v.literal('processing'),
-        v.literal('ready'),
-        v.literal('error')
-      ),
+      status: v.union(v.literal('uploading'), v.literal('processing'), v.literal('ready'), v.literal('error')),
       extractedContent: v.optional(v.string()),
       metadata: v.optional(
         v.object({
           authors: v.optional(v.array(v.string())),
           abstract: v.optional(v.string()),
           keywords: v.optional(v.array(v.string())),
-        })
+        }),
       ),
-    })
+    }),
   ),
   handler: async (ctx) => {
     const userId = await getUserFromAuth(ctx);
@@ -354,10 +337,9 @@ export const listUserPapers = query({
           ...paper,
           pdfUrl,
         };
-      })
+      }),
     );
 
     return papersWithUrls;
   },
 });
-

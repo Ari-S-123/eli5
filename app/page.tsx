@@ -10,13 +10,11 @@ import { useEffect } from 'react';
 
 /**
  * Home/Landing page
- * 
+ *
  * For authenticated users: Redirects to dashboard
  * For unauthenticated users: Shows landing page with sign in/up
  */
 export default function Home() {
-  const router = useRouter();
-
   return (
     <>
       <Authenticated>
@@ -58,18 +56,14 @@ function LandingPage() {
           <div className="flex justify-center">
             <Sparkles className="h-16 w-16 text-primary" />
           </div>
-          <h1 className="text-5xl font-bold tracking-tight">
-            ELI5
-          </h1>
+          <h1 className="text-5xl font-bold tracking-tight">ELI5</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Transform academic papers into interactive visual demonstrations. 
-            Upload PDFs and let AI generate engaging visualizations of complex concepts.
+            Transform academic papers into interactive visual demonstrations. Upload PDFs and let AI generate engaging
+            visualizations of complex concepts.
           </p>
           <div className="flex gap-4 justify-center pt-4">
             <Link href="/sign-up">
-              <Button size="lg">
-                Get Started
-              </Button>
+              <Button size="lg">Get Started</Button>
             </Link>
             <Link href="/sign-in">
               <Button size="lg" variant="outline">
@@ -124,9 +118,7 @@ function LandingPage() {
                   </div>
                 </div>
                 <CardTitle className="text-lg">Upload PDF</CardTitle>
-                <CardDescription>
-                  Upload any academic paper in PDF format
-                </CardDescription>
+                <CardDescription>Upload any academic paper in PDF format</CardDescription>
               </CardHeader>
             </Card>
 
@@ -138,9 +130,7 @@ function LandingPage() {
                   </div>
                 </div>
                 <CardTitle className="text-lg">AI Analysis</CardTitle>
-                <CardDescription>
-                  Our AI analyzes and extracts key information
-                </CardDescription>
+                <CardDescription>Our AI analyzes and extracts key information</CardDescription>
               </CardHeader>
             </Card>
 
@@ -152,9 +142,7 @@ function LandingPage() {
                   </div>
                 </div>
                 <CardTitle className="text-lg">Describe Concept</CardTitle>
-                <CardDescription>
-                  Tell us what concept you want to visualize
-                </CardDescription>
+                <CardDescription>Tell us what concept you want to visualize</CardDescription>
               </CardHeader>
             </Card>
 
@@ -166,9 +154,7 @@ function LandingPage() {
                   </div>
                 </div>
                 <CardTitle className="text-lg">View Demo</CardTitle>
-                <CardDescription>
-                  Get an interactive visual demonstration
-                </CardDescription>
+                <CardDescription>Get an interactive visual demonstration</CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -182,9 +168,7 @@ function LandingPage() {
               Sign up now and start generating interactive demonstrations from your academic papers
             </p>
             <Link href="/sign-up">
-              <Button size="lg">
-                Create Free Account
-              </Button>
+              <Button size="lg">Create Free Account</Button>
             </Link>
           </CardContent>
         </Card>

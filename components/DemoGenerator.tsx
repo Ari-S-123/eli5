@@ -21,7 +21,7 @@ type DemoGeneratorProps = {
 
 /**
  * Component for generating interactive demonstrations from paper concepts
- * 
+ *
  * Features:
  * - Concept description input
  * - Loading states during generation
@@ -69,9 +69,7 @@ export function DemoGenerator({ paperId, onGenerateComplete }: DemoGeneratorProp
     <Card>
       <CardHeader>
         <CardTitle>Generate Interactive Demo</CardTitle>
-        <CardDescription>
-          Describe a concept from the paper that you&apos;d like to see visualized
-        </CardDescription>
+        <CardDescription>Describe a concept from the paper that you&apos;d like to see visualized</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {generating ? (
@@ -109,4 +107,3 @@ export function DemoGenerator({ paperId, onGenerateComplete }: DemoGeneratorProp
     </Card>
   );
 }
-

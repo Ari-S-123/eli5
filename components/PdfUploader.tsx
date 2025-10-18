@@ -19,7 +19,7 @@ type PdfUploaderProps = {
 
 /**
  * Component for uploading PDF files with drag-and-drop support
- * 
+ *
  * Features:
  * - File validation (PDF only, max 10MB)
  * - Drag and drop interface
@@ -39,7 +39,7 @@ export function PdfUploader({ onUploadComplete }: PdfUploaderProps) {
 
   /**
    * Validates the selected file
-   * 
+   *
    * @param selectedFile - File to validate
    * @returns Error message or null if valid
    */
@@ -147,7 +147,7 @@ export function PdfUploader({ onUploadComplete }: PdfUploaderProps) {
 
       // Step 4: Complete (100%)
       setProgress(100);
-      
+
       // Reset state
       setTimeout(() => {
         setFile(null);
@@ -190,9 +190,7 @@ export function PdfUploader({ onUploadComplete }: PdfUploaderProps) {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            isDragging
-              ? 'border-primary bg-primary/5'
-              : 'border-muted-foreground/25 hover:border-primary/50'
+            isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'
           }`}
         >
           {!file ? (
@@ -220,9 +218,7 @@ export function PdfUploader({ onUploadComplete }: PdfUploaderProps) {
                 <FileText className="h-8 w-8 text-primary" />
                 <div className="text-left">
                   <p className="text-sm font-medium">{file.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+                  <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={handleClear} disabled={uploading}>
@@ -243,9 +239,7 @@ export function PdfUploader({ onUploadComplete }: PdfUploaderProps) {
         {uploading && (
           <div className="space-y-2">
             <Progress value={progress} />
-            <p className="text-xs text-muted-foreground text-center">
-              Uploading and processing... {progress}%
-            </p>
+            <p className="text-xs text-muted-foreground text-center">Uploading and processing... {progress}%</p>
           </div>
         )}
 
@@ -257,4 +251,3 @@ export function PdfUploader({ onUploadComplete }: PdfUploaderProps) {
     </Card>
   );
 }
-

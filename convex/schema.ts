@@ -3,7 +3,7 @@ import { v } from 'convex/values';
 
 /**
  * Database schema for ELI5 Academic Paper Visual Demo Generator
- * 
+ *
  * This schema defines three main entities:
  * - users: User accounts provisioned from WorkOS authentication
  * - papers: Academic PDFs uploaded by users with extracted content
@@ -29,19 +29,14 @@ export default defineSchema({
     fileName: v.string(),
     fileStorageId: v.id('_storage'),
     pdfUrl: v.optional(v.string()),
-    status: v.union(
-      v.literal('uploading'),
-      v.literal('processing'),
-      v.literal('ready'),
-      v.literal('error')
-    ),
+    status: v.union(v.literal('uploading'), v.literal('processing'), v.literal('ready'), v.literal('error')),
     extractedContent: v.optional(v.string()),
     metadata: v.optional(
       v.object({
         authors: v.optional(v.array(v.string())),
         abstract: v.optional(v.string()),
         keywords: v.optional(v.array(v.string())),
-      })
+      }),
     ),
   }).index('by_userId', ['userId']),
 
@@ -52,12 +47,7 @@ export default defineSchema({
     paperId: v.id('papers'),
     userId: v.id('users'),
     concept: v.string(),
-    status: v.union(
-      v.literal('generating'),
-      v.literal('executing'),
-      v.literal('ready'),
-      v.literal('failed')
-    ),
+    status: v.union(v.literal('generating'), v.literal('executing'), v.literal('ready'), v.literal('failed')),
     generatedCode: v.string(),
     codeType: v.union(v.literal('html'), v.literal('react')),
     executionResults: v.optional(
@@ -67,10 +57,19 @@ export default defineSchema({
         screenshot: v.optional(v.string()),
         logs: v.optional(v.array(v.string())),
         errors: v.optional(v.array(v.string())),
-      })
+      }),
     ),
     demoFileStorageId: v.optional(v.id('_storage')),
   })
     .index('by_paperId', ['paperId'])
     .index('by_userId', ['userId']),
+
+  /**
+   * Numbers table - used by sample functions in `convex/myFunctions.ts`
+   * to demonstrate basic querying and mutations. This enables the
+   * existing example code to type-check and run.
+   */
+  numbers: defineTable({
+    value: v.number(),
+  }),
 });

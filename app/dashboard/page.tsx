@@ -12,7 +12,7 @@ import { useEffect } from 'react';
 
 /**
  * Dashboard page - Landing page for authenticated users
- * 
+ *
  * Features:
  * - Welcome message
  * - Quick stats
@@ -66,9 +66,7 @@ export default function DashboardPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {papers?.filter((p) => p.status === 'ready').length ?? 0}
-            </div>
+            <div className="text-2xl font-bold">{papers?.filter((p) => p.status === 'ready').length ?? 0}</div>
             <p className="text-xs text-muted-foreground">Papers ready for demo generation</p>
           </CardContent>
         </Card>
@@ -96,9 +94,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Recent Papers</h2>
-            <p className="text-sm text-muted-foreground">
-              Your most recently uploaded academic papers
-            </p>
+            <p className="text-sm text-muted-foreground">Your most recently uploaded academic papers</p>
           </div>
           {papers && papers.length > 0 && (
             <Link href="/papers">
@@ -177,4 +173,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
