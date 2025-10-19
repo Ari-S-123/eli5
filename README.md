@@ -6,6 +6,11 @@ Transform academic papers into interactive visual demonstrations using AI.
 
 ELI5 is a Next.js application that allows authenticated users to upload academic PDFs, automatically extracts content using Anthropic's Claude AI, and generates interactive visual demonstrations of complex concepts from the papers. The generated code is executed in secure Daytona sandboxes to provide safe, isolated execution.
 
+## TODO:
+
+- Fix Daytona Sandbox.
+- Improve UI/UX.
+
 ## Features
 
 - **PDF Upload & Analysis**: Upload academic papers and let AI extract content, authors, abstract, and keywords
